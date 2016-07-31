@@ -24,62 +24,74 @@
 (defn sigmoid [t]
   (/ t (+ 1 (abs t))))
 
+(defn conj* [element coll]
+  (conj coll element))
+
 (defn neural-net [num-inputs num-hidden-layers num-layer-nodes num-outputs bias]
   (->> (repeat num-layer-nodes 1.0)
        (vec)
        (repeat num-layer-nodes)
        (vec)
        (repeat (dec num-hidden-layers))
-       (vec)))
+       (vec)
+       (into [(->> (repeat num-inputs 1.0)
+                   (vec)
+                   (repeat num-layer-nodes)
+                   (vec))])
+       (conj* (->> (repeat num-layer-nodes 1.0)
+                   (vec)
+                   (repeat num-outputs)
+                   (vec)))
+       (hash-map :num-inputs num-inputs
+                 :num-hidden-layers num-hidden-layers
+                 :num-layer-nodes num-layer-nodes
+                 :num-outputs num-outputs
+                 :bias bias
+                 :weights)))
 
-(def nn
-  {:num-inputs 2
-   :num-hidden-layers 2
-   :num-outputs 1
-   :weights [;all layers
-             [;layer 0
-              [;weights from layer 0 output 1 to layer 1
-               w011
-               w012
-              ]
-              [;weights from layer 0 output 2 to layer 1
-               w021
-               w022
-              ]
-             ]
-             [;layer 2
-              [;weights from layer 1 output 1 to layer 2
-               w211
-               w212
-              ]
-              [;weights from layer 1 output 1 to layer 2
-               w221
-               w222
-              ]
-             ]
-             [;output layer
-              [;weights for single output neuron
-               w011
-               w021
-              ]
-             ]
-            ]})
+;(def nn
+  ;{:num-inputs 2
+   ;:num-hidden-layers 2
+   ;:num-outputs 1
+   ;:weights [;all layers
+             ;[;layer 0
+              ;[;weights from layer 0 output 1 to layer 1
+               ;w011
+               ;w012
+              ;]
+              ;[;weights from layer 0 output 2 to layer 1
+               ;w021
+               ;w022
+              ;]
+             ;]
+             ;[;layer 2
+              ;[;weights from layer 1 output 1 to layer 2
+               ;w211
+               ;w212
+              ;]
+              ;[;weights from layer 1 output 1 to layer 2
+               ;w221
+               ;w222
+              ;]
+             ;]
+             ;[;output layer
+              ;[;weights for single output neuron
+               ;w011
+               ;w021
+              ;]
+             ;]
+            ;]})
 
-(defn sigmoid [z]
-  )
+;(for [layer (:weights nn)]
+  ;(for [output layer]
+    ;(for [target output]
+      ;;this weight goes to target in layer from previous output
+      ;)))
 
-(for [layer (:weights nn)]
-  (for [output layer]
-    (for [target output]
-      ;this weight goes to target in layer from previous output
-      )))
+;(defn percept-layer [input-vals input-weights activation-function]
+  ;)
 
-(defn percept-layer [input-vals input-weights activation-function]
-  )
-
-(defn percept [input-val input-weights activation-function])
-
-
+;(defn percept [input-val input-weights activation-function])
 
 (defn fib
   ([n]
