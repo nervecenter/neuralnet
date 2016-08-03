@@ -5,7 +5,9 @@
           :source-paths #{"src"}
           :resource-paths #{"resources"}
           :dependencies '[[org.clojure/clojure "1.8.0"]
-                          [org.clojure/tools.namespace "0.2.11"]])
+                          [org.clojure/tools.namespace "0.2.11"]
+                          [net.mikera/vectorz-clj "0.44.1"]
+                          [org.clojure/math.numeric-tower "0.0.4"]])
 
 ; (def e Math/E)
 ;
@@ -18,36 +20,58 @@
 ;         (recur base (dec times-left) (* accumulator base))
 ;         (recur base (inc times-left) (/ accumulator base))))))
 
-(defn abs [n]
-  (max n (- n)))
+(use 'clojure.core.matrix)
+(require '[clojure.math.numeric-tower :as math])
+(set-current-implementation :vectorz)
 
-(defn sigmoid [t]
-  (/ t (+ 1 (abs t))))
+;(defn abs [n]
+  ;(max n (- n)))
+
+(defn sigmoid [z]
+  (/ 1 (+ 1 (math/expt Math/E (- z)))))
 
 (defn conj* [element coll]
   (conj coll element))
 
+(defn layer-weights [num-inputs num-targets]
+  (->> (repeat num-inputs 1.0)
+       (repeat num-targets)
+       (matrix)))
+
 (defn neural-net [num-inputs num-hidden-layers num-layer-nodes num-outputs bias]
-  (->> (repeat num-layer-nodes 1.0)
-       (vec)
-       (repeat num-layer-nodes)
-       (vec)
+  (->> (layer-weights num-layer-nodes num-layer-nodes)
        (repeat (dec num-hidden-layers))
        (vec)
-       (into [(->> (repeat num-inputs 1.0)
-                   (vec)
-                   (repeat num-layer-nodes)
-                   (vec))])
-       (conj* (->> (repeat num-layer-nodes 1.0)
-                   (vec)
-                   (repeat num-outputs)
-                   (vec)))
+       (into [(layer-weights num-inputs num-layer-nodes)])
+       (conj* (layer-weights num-layer-nodes num-outputs))
        (hash-map :num-inputs num-inputs
                  :num-hidden-layers num-hidden-layers
                  :num-layer-nodes num-layer-nodes
                  :num-outputs num-outputs
                  :bias bias
                  :weights)))
+
+;(defn neural-net [num-inputs num-hidden-layers num-layer-nodes num-outputs bias]
+  ;(->> (repeat num-layer-nodes 1.0)
+       ;(vec)
+       ;(repeat num-layer-nodes)
+       ;(vec)
+       ;(repeat (dec num-hidden-layers))
+       ;(vec)
+       ;(into [(->> (repeat num-inputs 1.0)
+                   ;(vec)
+                   ;(repeat num-layer-nodes)
+                   ;(vec))])
+       ;(conj* (->> (repeat num-layer-nodes 1.0)
+                   ;(vec)
+                   ;(repeat num-outputs)
+                   ;(vec)))
+       ;(hash-map :num-inputs num-inputs
+                 ;:num-hidden-layers num-hidden-layers
+                 ;:num-layer-nodes num-layer-nodes
+                 ;:num-outputs num-outputs
+                 ;:bias bias
+                 ;:weights)))
 
 ;(def nn
   ;{:num-inputs 2
