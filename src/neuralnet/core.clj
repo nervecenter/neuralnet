@@ -10,6 +10,16 @@
 (defn conj* [element coll]
   (conj coll element))
 
+(defn normalize [input-lo input-hi number output-lo output-hi]
+  (float
+    (+ (/ (* (- number
+                input-lo)
+             (- output-hi
+                output-lo))
+          (- input-hi
+             input-lo))
+       output-lo)))
+
 ;(defn layer-weights [num-inputs num-targets]
   ;(->> (repeat num-inputs 1.0)
        ;(repeat num-targets)
@@ -21,17 +31,27 @@
        (repeat num-targets)
        (vec)))
 
-(defn neural-net [num-inputs num-hidden-layers num-layer-nodes num-outputs bias]
+(defn neural-net [input-lo
+                  input-hi
+                  num-inputs
+                  num-hidden-layers
+                  num-layer-nodes
+                  num-outputs
+                  output-lo
+                  output-hi]
   (->> (layer-weights num-layer-nodes num-layer-nodes)
        (repeat (dec num-hidden-layers))
        (vec)
        (into [(layer-weights num-inputs num-layer-nodes)])
        (conj* (layer-weights num-layer-nodes num-outputs))
-       (hash-map :num-inputs num-inputs
+       (hash-map :input-lo input-lo
+                 :input-hi input-hi
+                 :num-inputs num-inputs
                  :num-hidden-layers num-hidden-layers
                  :num-layer-nodes num-layer-nodes
                  :num-outputs num-outputs
-                 :bias bias
+                 :output-lo output-lo
+                 :output-hi output-hi
                  :weights)))
 
 (defn random-weight-net [net]
@@ -39,7 +59,7 @@
          (vec (map (fn [layer]
                      (vec (map (fn [row]
                                  (vec (map (fn [w]
-                                             (* (rand) 4.0))
+                                             (* (rand) 1.0))
                                            row)))
                                layer)))
                    (:weights net)))))
@@ -55,10 +75,21 @@
     (activate inputs weights-to-neuron)))
 
 (defn feed-forward [inputs network]
-  (loop [prev-vals inputs
+  (loop [prev-vals (vec
+                     (map #(normalize (:input-lo network)
+                                      (:input-hi network)
+                                      %
+                                      -1.0
+                                      1.0)
+                          inputs))
          layers-remaining (:weights network)]
     (if (empty? layers-remaining)
-      (vec prev-vals)
+      (vec (map #(normalize -1.0
+                            1.0
+                            %
+                            (:output-lo network)
+                            (:output-hi network))
+                prev-vals))
       (recur (activate-layer prev-vals (first layers-remaining))
              (rest layers-remaining)))))
 
