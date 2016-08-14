@@ -7,10 +7,8 @@
           :dependencies '[[org.clojure/clojure "1.8.0"]
                           [org.clojure/tools.namespace "0.2.11"]
                           [net.mikera/vectorz-clj "0.44.1"]
-                          [org.clojure/math.numeric-tower "0.0.4"]
-                          [org.clojure/tools.trace "0.7.9"]])
+                          [org.clojure/math.numeric-tower "0.0.4"]])
 
-(use 'clojure.tools.trace)
 (require '[neuralnet.core :as nn])
 
 (defn fib

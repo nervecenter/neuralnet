@@ -4,6 +4,9 @@
 
 (set-current-implementation :vectorz)
 
+(def bias 1.0)
+(def learning-rate 0.3)
+
 (defn sigmoid [z]
   (/ 1 (+ 1 (math/expt Math/E (- z)))))
 
@@ -20,16 +23,10 @@
              input-lo))
        output-lo)))
 
-;(defn layer-weights [num-inputs num-targets]
-  ;(->> (repeat num-inputs 1.0)
-       ;(repeat num-targets)
-       ;(matrix)))
-
 (defn layer-weights [num-inputs num-targets]
-  (->> (repeat num-inputs 1.0)
-       (vec)
-       (repeat num-targets)
-       (vec)))
+  (->> (repeat num-targets 1.0)
+       (repeat num-inputs)
+       (matrix)))
 
 (defn neural-net [input-lo
                   input-hi
@@ -54,15 +51,21 @@
                  :output-hi output-hi
                  :weights)))
 
-(defn random-weight-net [net]
-  (assoc net :weights
-         (vec (map (fn [layer]
-                     (vec (map (fn [row]
-                                 (vec (map (fn [w]
-                                             (* (rand) 1.0))
-                                           row)))
-                               layer)))
-                   (:weights net)))))
+(defn randomize-row [row]
+  (->> row
+       (map (fn [weight] (* (rand) 1.0)))
+       (array)))
+
+(defn randomize-layer [layer]
+  (->> layer
+       (map #(randomize-row %))
+       (matrix)))
+
+(defn randomize-net [net]
+  (->> (:weights net)
+       (map #(randomize-layer %))
+       (vec)
+       (assoc net :weights)))
 
 (defn activate [inputs weights-to-neuron]
   (->> (map * inputs weights-to-neuron)
@@ -71,7 +74,7 @@
        (sigmoid)))
 
 (defn activate-layer [inputs layer]
-  (for [weights-to-neuron layer]
+  (for [weights-to-neuron (columns layer)]
     (activate inputs weights-to-neuron)))
 
 (defn feed-forward [inputs network]
@@ -92,6 +95,26 @@
                 prev-vals))
       (recur (activate-layer prev-vals (first layers-remaining))
              (rest layers-remaining)))))
+
+(defn mean-squared-error [actual expected]
+  (* 0.01 (math/expt (- actual expected) 2)))
+
+(defn neuron-error [prev-errors neuron-weights]
+  (reduce +
+          (for [target prev-errors]
+            (map #(* target %) neuron-weights))))
+
+(defn layer-errors [prev-errors layer]
+  (map #(neuron-error prev-errors %)
+       (rows layer)))
+
+(defn back-propagate [output expected-output network]
+  (loop [errors (map #(mean-squared-error %1 %2) output expected-output)
+         layers (reverse (:weights network))]
+    (if (empty? layers)
+      (vector errors)
+      (recur (conj (layer-errors (first errors) (first layers)) errors)
+             (rest layers)))))
 
   ;(->> (:weights net)))
 
