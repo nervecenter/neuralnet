@@ -99,27 +99,53 @@
 (defn mean-squared-error [actual expected]
   (* 0.01 (math/expt (- actual expected) 2)))
 
-(defn neuron-error [prev-errors neuron-weights]
-  (reduce +
-          (for [target prev-errors]
-            (map #(* target %) neuron-weights))))
+(defn neuron-error
+  "Takes a vector of errors from the target neurons and the vector of weights from the desired neuron, and calculates the error by taking the dot product of the two."
+  [prev-errors neuron-weights]
+  (dot prev-errors neuron-weights))
 
 (defn layer-errors [prev-errors layer]
-  (map #(neuron-error prev-errors %)
-       (rows layer)))
+  (vec (for [neuron-weights (rows layer)]
+         (neuron-error prev-errors neuron-weights))))
 
-(defn back-propagate [output expected-output network]
-  (loop [errors (map #(mean-squared-error %1 %2) output expected-output)
+(defn adjust-column-weights [neuron-error weights]
+  (map #(+ neuron-error %) weights))
+
+(defn adjust-layer-weights [layer-errors layer]
+  (array (map #(adjust-column-weights %1 %2) layer-errors (columns layer))))
+
+(defn adjust-net-weights [errors network]
+  (->> (map #(adjust-layer-weights %1 %2) errors (:weights network))
+       (assoc network :weights))
+
+(defn back-propagate [inputs expected-output network]
+  (loop [errors (->> (map #(mean-squared-error %1 %2)
+                          (feed-forward inputs network)
+                          expected-output)
+                     (vec)
+                     (list))
          layers (reverse (:weights network))]
+    ;(println "Errors:")
+    ;(doseq [e errors] (println e))
+    ;(println "Layers:" layers)
     (if (empty? layers)
-      (vector errors)
-      (recur (conj (layer-errors (first errors) (first layers)) errors)
+      (adjust-net-weights (vec errors) network)
+      (recur (conj errors
+                   (layer-errors (first errors) (first layers)))
              (rest layers)))))
 
-  ;(->> (:weights net)))
+(defn epoch [training-data network]
+  (loop [data training-data
+         net network]
+    (if (empty? data)
+      net
+      (recur (rest data)
+             (back-propagate (:in (first data)) (:out (first data)) net)))))
 
-; (def e Math/E)
-;
+(def untrained-and
+  (-> (neural-net 0.0 1.0 2 2 2 1 0.0 1.0)
+      (randomize-net)))
+
 ; (defn exp
 ;   ([base exponent] (exp base exponent 1))
 ;   ([base times-left accumulator]
@@ -128,72 +154,3 @@
 ;       (if (> times-left 0)
 ;         (recur base (dec times-left) (* accumulator base))
 ;         (recur base (inc times-left) (/ accumulator base))))))
-
-;(defn abs [n]
-  ;(max n (- n)))
-
-;(defn neural-net [num-inputs num-hidden-layers num-layer-nodes num-outputs bias]
-  ;(->> (repeat num-layer-nodes 1.0)
-       ;(vec)
-       ;(repeat num-layer-nodes)
-       ;(vec)
-       ;(repeat (dec num-hidden-layers))
-       ;(vec)
-       ;(into [(->> (repeat num-inputs 1.0)
-                   ;(vec)
-                   ;(repeat num-layer-nodes)
-                   ;(vec))])
-       ;(conj* (->> (repeat num-layer-nodes 1.0)
-                   ;(vec)
-                   ;(repeat num-outputs)
-                   ;(vec)))
-       ;(hash-map :num-inputs num-inputs
-                 ;:num-hidden-layers num-hidden-layers
-                 ;:num-layer-nodes num-layer-nodes
-                 ;:num-outputs num-outputs
-                 ;:bias bias
-                 ;:weights)))
-
-;(def nn
-  ;{:num-inputs 2
-   ;:num-hidden-layers 2
-   ;:num-outputs 1
-   ;:weights [;all layers
-             ;[;layer 0
-              ;[;weights from layer 0 output 1 to layer 1
-               ;w011
-               ;w012
-              ;]
-              ;[;weights from layer 0 output 2 to layer 1
-               ;w021
-               ;w022
-              ;]
-             ;]
-             ;[;layer 2
-              ;[;weights from layer 1 output 1 to layer 2
-               ;w211
-               ;w212
-              ;]
-              ;[;weights from layer 1 output 1 to layer 2
-               ;w221
-               ;w222
-              ;]
-             ;]
-             ;[;output layer
-              ;[;weights for single output neuron
-               ;w011
-               ;w021
-              ;]
-             ;]
-            ;]})
-
-;(for [layer (:weights nn)]
-  ;(for [output layer]
-    ;(for [target output]
-      ;;this weight goes to target in layer from previous output
-      ;)))
-
-;(defn percept-layer [input-vals input-weights activation-function]
-  ;)
-
-;(defn percept [input-val input-weights activation-function])

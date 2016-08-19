@@ -9,7 +9,7 @@
                           [net.mikera/vectorz-clj "0.44.1"]
                           [org.clojure/math.numeric-tower "0.0.4"]])
 
-(require '[neuralnet.core :as nn])
+(use 'neuralnet.core)
 
 (defn fib
   ([n]
