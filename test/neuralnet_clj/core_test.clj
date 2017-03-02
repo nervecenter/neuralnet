@@ -75,16 +75,35 @@
 					first (select rrow 0)
 					second (select rrow 1)
 					third (select rrow 2)]
+			(is (= (ecount rrow) 3))
 			(is (between first 0.0 1.0))
 			(is (between second 0.0 1.0))
 			(is (between third 0.0 1.0))
 		)))
 
 (deftest randomize-layer-test
-	(testing "Testing randomizing whole layer:"
+	(testing "Testing randomizing full layer:"
 		(let [rmat (randomize-layer (matrix [[1.0 1.0 1.0],
 																				 [1.0 1.0 1.0]]))]
+			(is (= (row-count rmat) 2))
+			(is (= (column-count rmat) 3))
 			(doseq [row rmat]
 				(doseq [weight row]
 					(is (between weight 0.0 1.0))))
+		)))
+
+(deftest randomize-net-test
+	(testing "Testing randomizing whole network:"
+		(let [rnet (randomize-net (neural-net 0 1 2 1 2 1 0 1))
+					rweights (:weights rnet)]
+			(is (= (row-count (rweights 0)) 2))
+			(is (= (column-count (rweights 0)) 2))
+			(is (= (row-count (rweights 1)) 2))
+			(is (= (column-count (rweights 1)) 2))
+			(is (= (row-count (rweights 2)) 2))
+			(is (= (column-count (rweights 2)) 1))
+			(doseq [layer rweights]
+				(doseq [row layer]
+					(doseq [weight row]
+						(is (between weight 0.0 1.0)))))
 		)))
