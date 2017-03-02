@@ -1,7 +1,7 @@
 (ns neuralnet-clj.core
   (:use clojure.core.matrix)
   (:require [clojure.math.numeric-tower :as math])
-	(:gen-class))
+  (:gen-class))
 
 (set-current-implementation :vectorz)
 
@@ -13,13 +13,13 @@
 (def learning-rate 0.3)
 
 (defn sigmoid
-	"The sigmoid function: S(t) = 1 / (1 + e^-t)"
-	[z]
+  "The sigmoid function: S(t) = 1 / (1 + e^-t)"
+  [z]
   (/ 1 (+ 1 (math/expt Math/E (- z)))))
 
 (defn conj*
-	"Same as conj, but element is first param and collection is second."
-	[element coll]
+  "Same as conj, but element is first param and collection is second."
+  [element coll]
   (conj coll element))
 
 (defn normalize [input-lo input-hi number output-lo output-hi]
