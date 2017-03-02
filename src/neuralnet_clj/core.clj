@@ -1,7 +1,6 @@
 (ns neuralnet-clj.core
   (:use clojure.core.matrix)
-  (:require [clojure.math.numeric-tower :as math]
-						[neuralnet-clj.core-test :as tests])
+  (:require [clojure.math.numeric-tower :as math])
 	(:gen-class))
 
 (set-current-implementation :vectorz)
@@ -46,32 +45,32 @@
        (repeat num-inputs)
        (matrix)))
 
-;; (defn neural-net
-;;   "Generate a neural net map, containing relevant figures
-;;    to verify the net and a sequence of weight matrices
-;;    representing the net itself."
-;;   [input-lo
-;;    input-hi
-;;    num-inputs
-;;    num-hidden-layers
-;;    num-layer-nodes
-;;    num-outputs
-;;    output-lo
-;;    output-hi]
-;;   (->> (layer-weights num-layer-nodes num-layer-nodes)
-;;        (repeat (dec num-hidden-layers))
-;;        (vec)
-;;        (into [(layer-weights num-inputs num-layer-nodes)])
-;;        (conj* (layer-weights num-layer-nodes num-outputs))
-;;        (hash-map :input-lo input-lo
-;;                  :input-hi input-hi
-;;                  :num-inputs num-inputs
-;;                  :num-hidden-layers num-hidden-layers
-;;                  :num-layer-nodes num-layer-nodes
-;;                  :num-outputs num-outputs
-;;                  :output-lo output-lo
-;;                  :output-hi output-hi
-;;                  :weights)))
+(defn neural-net
+  "Generate a neural net map, containing relevant figures
+   to verify the net and a sequence of weight matrices
+   representing the net itself."
+  [input-lo
+   input-hi
+   num-inputs
+   num-hidden-layers
+   num-layer-nodes
+   num-outputs
+   output-lo
+   output-hi]
+  (->> (layer-weights num-layer-nodes num-layer-nodes)
+       (repeat num-hidden-layers)
+       (vec)
+       (into [(layer-weights num-inputs num-layer-nodes)])
+       (conj* (layer-weights num-layer-nodes num-outputs))
+       (hash-map :input-lo input-lo
+                 :input-hi input-hi
+                 :num-inputs num-inputs
+                 :num-hidden-layers num-hidden-layers
+                 :num-layer-nodes num-layer-nodes
+                 :num-outputs num-outputs
+                 :output-lo output-lo
+                 :output-hi output-hi
+                 :weights)))
 
 ;; (defn randomize-row
 ;;   "Take a row from a layer matrix and map random weights to it."

@@ -46,3 +46,22 @@
 										[1, 1],
 										[1, 1]])))
 		))
+
+(deftest neural-net-test
+	(testing "Testing creation of a prototype neural net:"
+		(is (= (neural-net 0 1 2 1 2 1 0 1)
+					 {:input-lo 0
+						:input-hi 1
+						:num-inputs 2
+						:num-hidden-layers 1
+						:num-layer-nodes 2
+						:num-outputs 1
+						:output-lo 0
+						:output-hi 1
+						:weights [(matrix [[1, 1],
+															 [1, 1]]),
+											(matrix [[1, 1],
+															 [1, 1]]),
+											(matrix [[1],
+															 [1]])]}))
+		))
