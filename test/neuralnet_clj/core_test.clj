@@ -79,3 +79,12 @@
 			(is (between second 0.0 1.0))
 			(is (between third 0.0 1.0))
 		)))
+
+(deftest randomize-layer-test
+	(testing "Testing randomizing whole layer:"
+		(let [rmat (randomize-layer (matrix [[1.0 1.0 1.0],
+																				 [1.0 1.0 1.0]]))]
+			(doseq [row rmat]
+				(doseq [weight row]
+					(is (between weight 0.0 1.0))))
+		)))

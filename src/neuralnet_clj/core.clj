@@ -79,20 +79,20 @@
        (map (fn [weight] (* (rand) 1.0)))
        (array)))
 
-;; (defn randomize-layer
-;;   "Take a layer matrix and map it with random weights."
-;;   [layer]
-;;   (->> layer
-;;        (map #(randomize-row %))
-;;        (matrix)))
+(defn randomize-layer
+  "Take a layer matrix and map it with random weights."
+  [layer]
+  (->> layer
+       (map #(randomize-row %))
+       (matrix)))
 
-;; (defn randomize-net
-;;   "Take a neural net and randomize the sequence of weight matrices."
-;;   [net]
-;;   (->> (:weights net)
-;;        (map #(randomize-layer %))
-;;        (vec)
-;;        (assoc net :weights)))
+(defn randomize-net
+  "Take a neural net and randomize the sequence of weight matrices."
+  [net]
+  (->> (:weights net)
+       (map #(randomize-layer %))
+       (vec)
+       (assoc net :weights)))
 
 ;
 ; UTILIZATION FUNCTIONS
