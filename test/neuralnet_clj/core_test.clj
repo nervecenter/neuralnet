@@ -65,3 +65,17 @@
 											(matrix [[1],
 															 [1]])]}))
 		))
+
+(defn between [num lo hi]
+	(if (and (<= lo num) (<= num hi)) true false))
+
+(deftest randomize-row-test
+	(testing "Testing randomizing layer rows:"
+		(let [rrow (randomize-row [1.0 1.0 1.0])
+					first (select rrow 0)
+					second (select rrow 1)
+					third (select rrow 2)]
+			(is (between first 0.0 1.0))
+			(is (between second 0.0 1.0))
+			(is (between third 0.0 1.0))
+		)))

@@ -72,12 +72,12 @@
                  :output-hi output-hi
                  :weights)))
 
-;; (defn randomize-row
-;;   "Take a row from a layer matrix and map random weights to it."
-;;   [row]
-;;   (->> row
-;;        (map (fn [weight] (* (rand) 1.0)))
-;;        (array)))
+(defn randomize-row
+  "Take a row from a layer matrix and map random weights to it."
+  [row]
+  (->> row
+       (map (fn [weight] (* (rand) 1.0)))
+       (array)))
 
 ;; (defn randomize-layer
 ;;   "Take a layer matrix and map it with random weights."
