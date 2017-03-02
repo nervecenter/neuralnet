@@ -1,0 +1,48 @@
+(ns neuralnet-clj.core-test
+  (:use clojure.core.matrix)
+  (:require [clojure.test :refer :all]
+            [neuralnet-clj.core :refer :all])
+	(:gen-class))
+
+;; (defn abs [x]
+;; 	(if (< x 0)
+;; 		(- x)
+;; 		x))
+
+(defn approx= [x y]
+	(> 0.0000000001 (abs (- x y))))
+
+(deftest sigmoid-test
+	(testing "Testing sigmoid function:"
+		(is (approx= (sigmoid 1) 0.73105857863000487925))
+		(is (approx= (sigmoid 2) 0.88079707797788244406))
+		(is (approx= (sigmoid 3) 0.95257412682243321912))
+		))
+
+(deftest conj*-test
+	(testing "Testing appending items with conj*:"
+		(is (= (conj* 3 [1 2]) [1 2 3]))
+		(is (= (conj* 4 [2 3]) [2 3 4]))
+		(is (= (conj* 5 [3 4]) [3 4 5]))
+		))
+
+(deftest normalize-test
+	(testing "Testing normalizing numbers to new range:"
+		(is (= (normalize 0.0 1.0 0.5 0.0 10.0) 5.0))
+		(is (= (normalize 0.0 1.0 0.5 -10.0 10.0) 0.0))
+		(is (= (normalize -1.0 1.0 0.5 0.0 10.0) 7.5))
+		))
+
+(deftest layer-weights-test
+	(testing "Testing creation of layers of weights:"
+		(is (= (layer-weights 2 2)
+					 (matrix [[1, 1],
+										[1, 1]])))
+		(is (= (layer-weights 2 3)
+					 (matrix [[1, 1, 1],
+										[1, 1, 1]])))
+		(is (= (layer-weights 3 2)
+					 (matrix [[1, 1],
+										[1, 1],
+										[1, 1]])))
+		))
