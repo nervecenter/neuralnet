@@ -156,3 +156,24 @@
                        0.9951271910406644
                        0.8536474687936986]))
     ))
+
+(deftest feed-forward-test
+  (testing "Testing feeding inputs through a whole network:"
+    (let [anet {:input-lo 0
+                :input-hi 1
+                :num-inputs 2
+                :num-hidden-layers 1
+                :num-layer-nodes 2
+                :num-outputs 1
+                :output-lo 0
+                :output-hi 1
+                :weights [(matrix [[0.3 0.9],
+                                   [0.87 0.77]]),
+                          (matrix [[0.12 0.43],
+                                   [0.39 0.71]]),
+                          (matrix [[0.22],
+                                   [0.46]])]}]
+      (is (coll-approx= (feed-forward [0.3 2.6] anet)
+                      [0.8305297476011987])))
+    ))
+

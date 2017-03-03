@@ -134,27 +134,27 @@
   (for [weights-to-neuron (columns layer)]
     (activate-neuron inputs weights-to-neuron)))
 
-;; (defn feed-forward
-;;   "Take a set of inputs and completely feed them through a
-;;    given network, producing the corresponding outputs."
-;;   [inputs network]
-;;   (loop [prev-vals (vec
-;;                      (map #(normalize (:input-lo network)
-;;                                       (:input-hi network)
-;;                                       %
-;;                                       -1.0
-;;                                       1.0)
-;;                           inputs))
-;;          layers-remaining (:weights network)]
-;;     (if (empty? layers-remaining)
-;;       (vec (map #(normalize -1.0
-;;                             1.0
-;;                             %
-;;                             (:output-lo network)
-;;                             (:output-hi network))
-;;                 prev-vals))
-;;       (recur (activate-layer prev-vals (first layers-remaining))
-;;              (rest layers-remaining)))))
+(defn feed-forward
+  "Take a set of inputs and completely feed them through a
+   given network, producing the corresponding outputs."
+  [inputs network]
+  (loop [prev-vals (vec
+                     (map #(normalize (:input-lo network)
+                                      (:input-hi network)
+                                      %
+                                      -1.0
+                                      1.0)
+                          inputs))
+         layers-remaining (:weights network)]
+    (if (empty? layers-remaining)
+      (vec (map #(normalize -1.0
+                            1.0
+                            %
+                            (:output-lo network)
+                            (:output-hi network))
+                prev-vals))
+      (recur (activate-layer prev-vals (first layers-remaining))
+             (rest layers-remaining)))))
 
 ;
 ; TRAINING FUNCTIONS
