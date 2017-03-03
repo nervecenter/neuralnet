@@ -5,6 +5,24 @@
 
 (set-current-implementation :vectorz)
 
+;;          EXAMPLE LAYER:
+;
+;              Weights
+;                 to
+;               neuron:
+;              a   b   c
+;            _____________
+;            |   |   |   |
+;          1 | w | w | w |
+;  Weights   |   |   |   |
+;  from    2 | w | w | w |
+;  input:    |   |   |   |
+;          3 | w | w | w |
+;            |   |   |   |
+;            -------------
+;
+
+
 ;
 ; GENERAL STUFF
 ;
@@ -108,13 +126,13 @@
        (reduce +)
        (sigmoid)))
 
-;; (defn activate-layer
-;;   "Takes a set of inputs from the previous layer and a layer
-;;    matrix and activates all the neurons, producing a set of
-;;    outputs to feed forward to the next layer."
-;;   [inputs layer]
-;;   (for [weights-to-neuron (columns layer)]
-;;     (activate-neuron inputs weights-to-neuron)))
+(defn activate-layer
+  "Takes a set of inputs from the previous layer and a layer
+   matrix and activates all the neurons, producing a set of
+   outputs to feed forward to the next layer."
+  [inputs layer]
+  (for [weights-to-neuron (columns layer)]
+    (activate-neuron inputs weights-to-neuron)))
 
 ;; (defn feed-forward
 ;;   "Take a set of inputs and completely feed them through a
