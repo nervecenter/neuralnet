@@ -14,11 +14,26 @@
   [x y]
   (> 0.0000000001 (abs (- x y))))
 
+(defn coll-approx=
+  "Tests two collections of values for approximity within 1e10^-10."
+  [xcoll ycoll]
+  (if (= (count (filterv #(= % true) (map approx= xcoll ycoll)))
+         (count xcoll)
+         (count ycoll))
+    true
+    false))
+
 (deftest sigmoid-test
   (testing "Testing sigmoid function:"
     (is (approx= (sigmoid 1) 0.73105857863000487925))
     (is (approx= (sigmoid 2) 0.88079707797788244406))
     (is (approx= (sigmoid 3) 0.95257412682243321912))
+    (is (coll-approx= [(sigmoid 1)
+                       (sigmoid 2)
+                       (sigmoid 3)]
+                      [0.73105857863000487925
+                       0.88079707797788244406
+                       0.95257412682243321912]))
     ))
 
 (deftest conj*-test
@@ -112,10 +127,32 @@
 
 (deftest activate-neuron-test
   (testing "Testing neuron activation function:"
-    (is (approx= (activate [1.0 2.0] [2.0 3.5])
+    (is (approx= (activate-neuron [1.0 2.0] [2.0 3.5])
                  0.99995460213129756561))
-    (is (approx= (activate [0.5 0.7 0.3] [0.6 0.9 0.2])
+    (is (approx= (activate-neuron [0.5 0.7 0.3] [0.6 0.9 0.2])
                  0.8797431375322491893))
-    (is (approx= (activate [0.3 1.4 0.1 0.22] [0.04 2.9 1.25 0.78])
+    (is (approx= (activate-neuron [0.3 1.4 0.1 0.22] [0.04 2.9 1.25 0.78])
                  0.99536096924906201644))
+    ))
+
+(deftest activate-layer-test
+  (testing "Testing layer activation function:"
+    (is (coll-approx= (activate-layer [0.3 2.6]
+                                      (matrix [[1.0 2.0],
+                                               [2.0 3.5]]))
+                      [0.998498817743263
+                       0.9999774555703496]))
+    (is (coll-approx= (activate-layer [1.5 1.9]
+                                      (matrix [[0.5 0.7 0.3],
+                                               [0.6 0.9 0.2]]))
+                      [0.947349881564697
+                       0.9772460565371959
+                       0.861761726827506]))
+    (is (coll-approx= (activate-layer [3.0 0.01 0.41]
+                                      (matrix [[0.3 1.4 0.1]
+                                               [0.04 2.9 1.25]
+                                               [0.78 0.22 1.1]]))
+                      [0.9020488684649232
+                       0.9951271910406644
+                       0.8536474687936986]))
     ))
