@@ -98,15 +98,15 @@
 ; UTILIZATION FUNCTIONS
 ;
 
-;; (defn activate
-;;   "Dot product the inputs to a neuron with the respective
-;;    weights of their connections, and then apply the sigmoid
-;;    to get the activation value, or output, of the neuron."
-;;   [inputs weights-to-neuron]
-;;   (->> (map * inputs weights-to-neuron)
-;;        (conj* 1.0)
-;;        (reduce +)
-;;        (sigmoid)))
+(defn activate-neuron
+  "Dot product the inputs to a neuron with the respective
+   weights of their connections, and then apply the sigmoid
+   to get the activation value, or output, of the neuron."
+  [inputs weights-to-neuron]
+  (->> (map * inputs weights-to-neuron)
+       (conj* 1.0)
+       (reduce +)
+       (sigmoid)))
 
 ;; (defn activate-layer
 ;;   "Takes a set of inputs from the previous layer and a layer
@@ -114,7 +114,7 @@
 ;;    outputs to feed forward to the next layer."
 ;;   [inputs layer]
 ;;   (for [weights-to-neuron (columns layer)]
-;;     (activate inputs weights-to-neuron)))
+;;     (activate-neuron inputs weights-to-neuron)))
 
 ;; (defn feed-forward
 ;;   "Take a set of inputs and completely feed them through a

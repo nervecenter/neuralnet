@@ -9,7 +9,9 @@
 ;;    (- x)
 ;;    x))
 
-(defn approx= [x y]
+(defn approx=
+  "Tests two values for approximity within 1e10^-10."
+  [x y]
   (> 0.0000000001 (abs (- x y))))
 
 (deftest sigmoid-test
@@ -107,3 +109,13 @@
           (doseq [weight row]
             (is (between weight 0.0 1.0)))))
     )))
+
+(deftest activate-neuron-test
+  (testing "Testing neuron activation function:"
+    (is (approx= (activate [1.0 2.0] [2.0 3.5])
+                 0.99995460213129756561))
+    (is (approx= (activate [0.5 0.7 0.3] [0.6 0.9 0.2])
+                 0.8797431375322491893))
+    (is (approx= (activate [0.3 1.4 0.1 0.22] [0.04 2.9 1.25 0.78])
+                 0.99536096924906201644))
+    ))
