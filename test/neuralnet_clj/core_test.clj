@@ -17,11 +17,9 @@
 (defn coll-approx=
   "Tests two collections of values for approximity within 1e10^-10."
   [xcoll ycoll]
-  (if (= (count (filterv #(= % true) (map approx= xcoll ycoll)))
-         (count xcoll)
-         (count ycoll))
-    true
-    false))
+  (= (count (filterv #(= % true) (map approx= xcoll ycoll)))
+     (count xcoll)
+     (count ycoll)))
 
 (deftest sigmoid-test
   (testing "Testing sigmoid function:"
@@ -160,7 +158,7 @@
 (deftest feed-forward-test
   (testing "Testing feeding inputs through a whole network:"
     (let [anet {:input-lo 0
-                :input-hi 1
+                :input-hi 3
                 :num-inputs 2
                 :num-hidden-layers 1
                 :num-layer-nodes 2
@@ -174,6 +172,6 @@
                           (matrix [[0.22],
                                    [0.46]])]}]
       (is (coll-approx= (feed-forward [0.3 2.6] anet)
-                      [0.8305297476011987])))
+                        [0.9140643])))
     ))
 
