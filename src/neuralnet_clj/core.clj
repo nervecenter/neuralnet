@@ -32,8 +32,8 @@
 
 (defn sigmoid
   "The sigmoid function: S(t) = 1 / (1 + e^-t)"
-  [z]
-  (/ 1 (+ 1 (math/expt Math/E (- z)))))
+  [t]
+  (/ 1 (+ 1 (math/expt Math/E (- t)))))
 
 (defn conj*
   "Same as conj, but element is first param and collection is second."

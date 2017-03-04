@@ -10,9 +10,9 @@
 ;;    x))
 
 (defn approx=
-  "Tests two values for approximity within 1e10^-10."
+  "Tests two values for approximity within 1e10^-6."
   [x y]
-  (> 0.0000000001 (abs (- x y))))
+  (> 0.000001 (abs (- x y))))
 
 (defn coll-approx=
   "Tests two collections of values for approximity within 1e10^-10."
