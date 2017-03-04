@@ -10,12 +10,12 @@
 ;;    x))
 
 (defn approx=
-  "Tests two values for approximity within 1e10^-6."
+  "Tests two values for approximity within 1e-6."
   [x y]
   (> 0.000001 (abs (- x y))))
 
 (defn coll-approx=
-  "Tests two collections of values for approximity within 1e10^-10."
+  "Tests two collections of values for approximity within 1e-6."
   [xcoll ycoll]
   (= (count (filterv #(= % true) (map approx= xcoll ycoll)))
      (count xcoll)
@@ -175,3 +175,9 @@
                         [0.9140643])))
     ))
 
+(deftest mean-squared-error-test
+  (testing "Testing mean squared errors function:"
+    (is (approx= (mean-squared-error 2.3 5.0) 2.187))
+    (is (approx= (mean-squared-error 0.11 0.057) 0.0008427 ))
+    (is (approx= (mean-squared-error 1.2 0.99) 0.01323))
+    ))

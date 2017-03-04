@@ -160,11 +160,11 @@
 ; TRAINING FUNCTIONS
 ;
 
-;; (defn mean-squared-error
-;;   "Formula for calculating the error of the output of a
-;;    network. Not for hidden layers."
-;;   [actual expected]
-;;   (* learning-rate (math/expt (- actual expected) 2)))
+(defn mean-squared-error
+  "Formula for calculating the error of the output of a
+   network. Not for hidden layers."
+  [actual expected]
+  (* learning-rate (math/expt (- actual expected) 2)))
 
 ;; (defn neuron-error
 ;;   "Takes the previous errors and dot products them with the
