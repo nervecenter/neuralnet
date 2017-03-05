@@ -181,3 +181,18 @@
     (is (approx= (mean-squared-error 0.11 0.057) 0.0008427 ))
     (is (approx= (mean-squared-error 1.2 0.99) 0.01323))
     ))
+
+(deftest neuron-error-test
+  (testing "Testing neuron error function:"
+    (is (approx= (neuron-error [2.3 1.7] [0.4 1.11]) 2.807))
+    (is (approx= (neuron-error [7.234 1.45 9.23] [2.23 5.32 7.21]) 90.39412))
+    (is (approx= (neuron-error [1.67 0.24 0.67 0.38] [0.234 0.46 0.834 0.34]) 1.18916))
+    ))
+
+(deftest layer-errors-test
+  (testing "Testing layer errors function:"
+    (is (coll-approx= (layer-errors [2.3 1.7] (matrix [[1.0 0.67],
+                                                       [2.0 3.5]])) [3.439 10.55]))
+    (is (coll-approx= (layer-errors [1.5 1.9 0.43] (matrix [[0.5 0.7 0.3],
+                                                            [0.6 0.9 0.2]])) [2.209 2.696]))
+    ))

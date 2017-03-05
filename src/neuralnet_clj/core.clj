@@ -166,19 +166,19 @@
   [actual expected]
   (* learning-rate (math/expt (- actual expected) 2)))
 
-;; (defn neuron-error
-;;   "Takes the previous errors and dot products them with the
-;;    weights of the given hidden neuron, calculating its error."
-;;   [prev-errors neuron-weights]
-;;   (dot prev-errors neuron-weights))
+(defn neuron-error
+  "Takes the previous errors and dot products them with the
+   weights to the given hidden neuron, calculating its error."
+  [prev-errors weights-from-neuron]
+  (dot prev-errors weights-from-neuron))
 
-;; (defn layer-errors
-;;   "Calculate the errors for the neurons in a layer by
-;;    taking the dot product of the following layer's errors
-;;    and the weights of the current layer."
-;;   [prev-errors layer]
-;;   (vec (for [neuron-weights (rows layer)]
-;;          (neuron-error prev-errors neuron-weights))))
+(defn layer-errors
+  "Calculate the errors for the neurons in a layer by
+   taking the dot product of the following layer's errors
+   and the weights of the current layer."
+  [prev-errors layer]
+  (vec (for [weights-from-neuron (rows layer)]
+         (neuron-error prev-errors weights-from-neuron))))
 
 ;; (defn adjust-column-weights
 ;;   "Add the errors to the current weights to a neuron to
