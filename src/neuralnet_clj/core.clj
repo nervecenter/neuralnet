@@ -1,5 +1,6 @@
 (ns neuralnet-clj.core
-  (:use clojure.core.matrix)
+  (:use clojure.core.matrix
+        [clojure.tools.namespace.repl :only (refresh)])
   (:require [clojure.math.numeric-tower :as math])
   (:gen-class))
 
@@ -180,17 +181,19 @@
   (vec (for [weights-from-neuron (rows layer)]
          (neuron-error prev-errors weights-from-neuron))))
 
-;; (defn adjust-column-weights
-;;   "Add the errors to the current weights to a neuron to
-;;    produce newly adjusted weights."
-;;   [neuron-error weights]
-;;   (map #(+ neuron-error %) weights))
+(defn adjust-weights-to-neuron
+  "Add the errors to the current weights to a neuron to
+   produce newly adjusted weights."
+  [neuron-error weights-to-neuron]
+  (map #(+ neuron-error %) weights-to-neuron))
 
-;; (defn adjust-layer-weights
-;;   "Produce a new layer by applying the errors at that layer
-;;    to the current layer."
-;;   [layer-errors layer]
-;;   (array (map #(adjust-column-weights %1 %2) layer-errors (columns layer))))
+(defn adjust-layer-weights
+  "Produce a new layer by applying the errors at that layer
+   to the current layer."
+  [errors layer]
+  (transpose
+	 (array
+		(map #(adjust-weights-to-neuron %1 %2) errors (columns layer)))))
 
 ;; (defn adjust-net-weights
 ;;   "Produce a new sequence of layer matrices by adjusting

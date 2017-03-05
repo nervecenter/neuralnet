@@ -21,6 +21,20 @@
      (count xcoll)
      (count ycoll)))
 
+(defn array-approx=
+  "Tests two collections of values for approximity within 1e-6."
+  [xcoll ycoll]
+  (= (count (filterv #(= % true) (map approx= xcoll ycoll)))
+     (ecount xcoll)
+     (ecount ycoll)))
+
+(defn matrix-approx=
+  "Tests two matrices of values for approximity within 1e-6."
+  [xmat ymat]
+  (= (count (filterv #(= % true) (map array-approx= (rows xmat) (rows ymat))))
+     (row-count xmat)
+     (row-count ymat)))
+
 (deftest sigmoid-test
   (testing "Testing sigmoid function:"
     (is (approx= (sigmoid 1) 0.73105857863000487925))
@@ -195,4 +209,25 @@
                                                        [2.0 3.5]])) [3.439 10.55]))
     (is (coll-approx= (layer-errors [1.5 1.9 0.43] (matrix [[0.5 0.7 0.3],
                                                             [0.6 0.9 0.2]])) [2.209 2.696]))
+    ))
+
+(deftest adjust-weights-to-neuron-test
+  (testing "Testing adjustment of weights to neuron:"
+    (is (coll-approx= (adjust-weights-to-neuron 2.3 [0.4 1.11]) [2.7 3.41]))
+    (is (coll-approx= (adjust-weights-to-neuron 7.23	[2.23 5.32 7.21]) [9.46 12.55 14.44]))
+    (is (coll-approx= (adjust-weights-to-neuron 1.67 [0.234 0.46 0.834 0.34]) [1.904 2.13 2.504 2.01]))
+    ))
+
+(deftest adjust-layer-weights-test
+  (testing "Testing adjustment of whole layer weights:"
+    (is (matrix-approx= (adjust-layer-weights [2.3 1.7]
+                                              (matrix [[1.0 0.67],
+                                                       [2.0 3.5]]))
+                        (matrix [[3.3 2.37],
+                                 [4.3 5.2]])))
+    (is (matrix-approx= (adjust-layer-weights [1.5 1.9 0.73]
+                                              (matrix [[0.5 0.7 0.3],
+                                                       [0.6 0.9 0.2]]))
+                        (matrix [[2.0 2.6 1.03],
+                                 [2.1 2.8 0.93]])))
     ))
