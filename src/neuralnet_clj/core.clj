@@ -165,7 +165,12 @@
   "Formula for calculating the error of the output of a
    network. Not for hidden layers."
   [actual expected]
-  (* learning-rate (math/expt (- actual expected) 2)))
+  (* 0.5 (math/expt (- actual expected) 2)))
+
+;; (defn total-error
+;;   "Calculate the total error of the outputs for a network."
+;; 	[actual-vec expected-vec]
+;; 	(reduce + (map mean-squared-error actual-vec expected-vec)))
 
 (defn neuron-error
   "Takes the previous errors and dot products them with the
@@ -185,59 +190,62 @@
   "Add the errors to the current weights to a neuron to
    produce newly adjusted weights."
   [neuron-error weights-to-neuron]
-  (map #(+ neuron-error %) weights-to-neuron))
+  (map #(- % (* learning-rate neuron-error)) weights-to-neuron))
 
 (defn adjust-layer-weights
   "Produce a new layer by applying the errors at that layer
    to the current layer."
   [errors layer]
   (transpose
-	 (array
+	 (matrix
 		(map #(adjust-weights-to-neuron %1 %2) errors (columns layer)))))
 
-;; (defn adjust-net-weights
-;;   "Produce a new sequence of layer matrices by adjusting
-;;    layer weights based on the errors at each layer."
-;;   [errors network]
-;;   (->> (map #(adjust-layer-weights %1 %2) errors (:weights network))
-;;        (assoc network :weights)))
+(defn adjust-net-weights
+  "Produce a new sequence of layer matrices by adjusting
+   layer weights based on the errors at each layer."
+  [errors network]
+  (->> (map #(adjust-layer-weights %1 %2) errors (:weights network))
+       (assoc network :weights)))
 
-;; (defn back-propagate
-;;   "Feed forward test data. Based on the output, calculate
-;;    errors, then propagate those errors back and return an
-;;    adjusted network."
-;;   [inputs expected-output network]
-;;   (loop [errors (->> (map #(mean-squared-error %1 %2)
-;;                           (feed-forward inputs network)
-;;                           expected-output)
-;;                      (vec)
-;;                      (list))
-;;          layers (reverse (:weights network))]
-;;     (println "Error:" (first errors))
-;;     (if (empty? layers)
-;;       (adjust-net-weights (vec errors) network)
-;;       (recur (conj errors
-;;                    (layer-errors (first errors) (first layers)))
-;;              (rest layers)))))
+(defn back-propagate
+  "Feed forward test data. Based on the output, calculate
+   errors, then propagate those errors back and return an
+   adjusted network."
+  [inputs expected-output network]
+	(let [output-errors (->> (map #(mean-squared-error %1 %2)
+																(feed-forward inputs network)
+																expected-output)
+													 (vec)
+													 (list))]
+		(println "Total error: " (reduce + output-errors))
+		(loop [errors output-errors
+					 layers (reverse (:weights network))]
+			(if (empty? layers)
+				(adjust-net-weights (vec errors) network)
+				(recur (conj errors
+										 (layer-errors (first errors) (first layers)))
+							 (rest layers))))))
 
-;; (defn epoch
-;;   "Back propagate each piece of data (inputs and their
-;;    expected outputs) in a sequence of test data, returning
-;;    the adjusted network."
-;;   [training-data network]
-;;   (loop [data training-data
-;;          net network]
-;;     (if (empty? data)
-;;       net
-;;       (recur (rest data)
-;;              (back-propagate (:in (first data)) (:out (first data)) net)))))
+(defn epoch
+  "Back propagate each piece of data (inputs and their
+   expected outputs) in a sequence of test data, returning
+   the adjusted network."
+  [training-data network]
+  (loop [data training-data
+         net network]
+    (if (empty? data)
+      net
+      (recur (rest data)
+             (back-propagate (:in (first data)) (:out (first data)) net)))))
 
-;; (defn train-network
-;;   "Train a network using the given training data, halting
-;;    at the desired error."
-;;   [network training-data desired-error]
-;;   (loop [epochs 1]
-;;     (recur (inc epochs))))
+(defn train-network
+  "Train a network the given numebr of epochs."
+  [network training-data num-epochs]
+  (loop [epochs 1
+				 net network]
+		(if (= epochs num-epochs)
+			net
+			(recur (inc epochs) (epoch training-data net)))))
 
 ;
 ; TEST SCENARIO
@@ -252,6 +260,16 @@
 ;;     :out [0.0]}
 ;;    {:in  [1.0 1.0]
 ;;     :out [1.0]}])
+
+(def nand-gate-training-data
+  [{:in  [0.0 0.0]
+    :out [1.0]}
+   {:in  [1.0 0.0]
+    :out [1.0]}
+   {:in  [0.0 1.0]
+    :out [1.0]}
+   {:in  [1.0 1.0]
+    :out [0.0]}])
 
 ;; (def and-gate-network
 ;;   (-> (neural-net 0.0 1.0 2 2 2 1 0.0 1.0)

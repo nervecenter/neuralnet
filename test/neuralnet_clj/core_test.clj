@@ -231,3 +231,18 @@
                         (matrix [[2.0 2.6 1.03],
                                  [2.1 2.8 0.93]])))
     ))
+
+{:input-lo 0
+ :input-hi 1
+ :num-inputs 2
+ :num-hidden-layers 1
+ :num-layer-nodes 2
+ :num-outputs 1
+ :output-lo 0
+ :output-hi 1
+ :weights [(matrix [[0.3 0.9],
+										[0.87 0.77]]),
+					 (matrix [[0.12 0.43],
+										[0.39 0.71]]),
+					 (matrix [[0.22],
+										[0.46]])]}
