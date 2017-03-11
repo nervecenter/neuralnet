@@ -36,6 +36,17 @@
   [t]
   (/ 1 (+ 1 (math/expt Math/E (- t)))))
 
+(defn logit
+  "The inverse of the sigmoid function: logit(p) = log(p / (1 - p))"
+  [p]
+  (Math/log (/ p (- 1 p))))
+
+(defn sigmoid-deriv
+  "The first derivative sigmoid function: S'(t) = S(t)(1 - S(t))"
+  [t]
+  (let [sig (sigmoid t)]
+    (* sig (- 1 sig))))
+
 (defn conj*
   "Same as conj, but element is first param and collection is second."
   [element coll]
@@ -139,22 +150,13 @@
   "Take a set of inputs and completely feed them through a
    given network, producing the corresponding outputs."
   [inputs network]
-  (loop [prev-vals (vec
-                     (map #(normalize (:input-lo network)
-                                      (:input-hi network)
-                                      %
-                                      -1.0
-                                      1.0)
-                          inputs))
+  (loop [layer-results [inputs]
          layers-remaining (:weights network)]
     (if (empty? layers-remaining)
-      (vec (map #(normalize -1.0
-                            1.0
-                            %
-                            (:output-lo network)
-                            (:output-hi network))
-                prev-vals))
-      (recur (activate-layer prev-vals (first layers-remaining))
+      layer-results
+      (recur (conj layer-results
+                   (activate-layer (last layer-results)
+                                   (first layers-remaining)))
              (rest layers-remaining)))))
 
 ;
@@ -212,11 +214,11 @@
    errors, then propagate those errors back and return an
    adjusted network."
   [inputs expected-output network]
-	(let [output-errors (->> (map #(mean-squared-error %1 %2)
-																(feed-forward inputs network)
-																expected-output)
-													 (vec)
-													 (list))]
+	(let [layer-results (feed-forward inputs network)
+        outputs (last layer-results)
+        output-sums (mapv logit outputs)
+        margins (mapv #(- %1 %2) expected-output output)
+        deltas (mapv #(* (sigmoid-deriv %1) %2) output-sums margins)]
 		(println "Total error: " (reduce + output-errors))
 		(loop [errors output-errors
 					 layers (reverse (:weights network))]
@@ -226,26 +228,32 @@
 										 (layer-errors (first errors) (first layers)))
 							 (rest layers))))))
 
-(defn epoch
-  "Back propagate each piece of data (inputs and their
-   expected outputs) in a sequence of test data, returning
-   the adjusted network."
-  [training-data network]
-  (loop [data training-data
-         net network]
-    (if (empty? data)
-      net
-      (recur (rest data)
-             (back-propagate (:in (first data)) (:out (first data)) net)))))
+;; (->> (map #(mean-squared-error %1 %2)
+;; 																(feed-forward inputs network)
+;; 																expected-output)
+;; 													 (vec)
+;; 													 (list))
 
-(defn train-network
-  "Train a network the given numebr of epochs."
-  [network training-data num-epochs]
-  (loop [epochs 1
-				 net network]
-		(if (= epochs num-epochs)
-			net
-			(recur (inc epochs) (epoch training-data net)))))
+;; (defn epoch
+;;   "Back propagate each piece of data (inputs and their
+;;    expected outputs) in a sequence of test data, returning
+;;    the adjusted network."
+;;   [training-data network]
+;;   (loop [data training-data
+;;          net network]
+;;     (if (empty? data)
+;;       net
+;;       (recur (rest data)
+;;              (back-propagate (:in (first data)) (:out (first data)) net)))))
+
+;; (defn train-network
+;;   "Train a network the given numebr of epochs."
+;;   [network training-data num-epochs]
+;;   (loop [epochs 1
+;; 				 net network]
+;; 		(if (= epochs num-epochs)
+;; 			net
+;; 			(recur (inc epochs) (epoch training-data net)))))
 
 ;
 ; TEST SCENARIO
