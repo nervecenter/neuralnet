@@ -213,26 +213,11 @@
   (vec (for [weights-from-neuron (rows layer)]
          (neuron-error prev-errors weights-from-neuron))))
 
-(defn adjust-weights-to-neuron
-  "Add the errors to the current weights to a neuron to
-   produce newly adjusted weights."
-  [neuron-error weights-to-neuron]
-  (map #(- % (* learning-rate neuron-error)) weights-to-neuron))
-
-(defn adjust-layer-weights
-  "Produce a new layer by applying the errors at that layer
-   to the current layer."
-  [errors layer]
-  (transpose
-	 (matrix
-		(map #(adjust-weights-to-neuron %1 %2) errors (columns layer)))))
-  
-;; (defn adjust-net-weights
-;;   "Produce a new sequence of layer matrices by adjusting
-;;    layer weights based on the errors at each layer."
-;;   [errors network]
-;;   (->> (map #(adjust-layer-weights %1 %2) errors (:weights network))
-;;        (assoc network :weights)))
+;; (defn adjust-weights-to-neuron
+;;   "Add the errors to the current weights to a neuron to
+;;    produce newly adjusted weights."
+;;   [neuron-error weights-to-neuron]
+;;   (map #(- % (* learning-rate neuron-error)) weights-to-neuron))
 
 (defn neuron-weight-adjustment
   "Calculate the amount to adjust the weights to a neuron.
@@ -241,24 +226,60 @@
   [error weighted-input output]
   (* learning-rate error (sigmoid-deriv weighted-input) output))
 
+(defn layer-weight-adjustments
+	[layer-errors weighted-inputs layer-outputs]
+	(map #(neuron-weight-adjustment %1 %2 %3)
+			 errors
+			 weighted-inputs
+			 layer-outputs))
+
+(defn adjust-layer-weights
+  "Produce a new layer by applying the errors at that layer
+   to the current layer."
+  [layer weight-adjustments]
+  (-> (map (fn [col adj] (map (fn [weight] (+ weight adj))
+															col))
+					 (columns layer)
+					 weight-adjustments)
+			(matrix)
+			(transpose)))
+  
+;; (defn adjust-net-weights
+;;   "Produce a new sequence of layer matrices by adjusting
+;;    layer weights based on the errors at each layer."
+;;   [errors network]
+;;   (->> (map #(adjust-layer-weights %1 %2) errors (:weights network))
+;;        (assoc network :weights)))
+
+
 (defn back-propagate
   "Feed forward test data. Based on the output, calculate
    errors, then propagate those errors back and return an
    adjusted network."
   [inputs expected-outputs network]
-	(let [layer-results (reverse (feed-forward inputs network))
-        weighted-inputs (reverse (mapv #(mapv logit %) layer-results))
-        outputs (last layer-results)
-        out-errors (output-errors outputs
-                                  expected-outputs
-                                  (last weighted-inputs))]
-		(println "Cost: " (cross-entropy-cost inputs expected-outputs outputs))
-    (loop [weighted-inputs-remaining weighted-inputs
-           layer-results-remaining layer-results
-           layers-remaining (reverse (:weights network))
-           new-layers []]
-           )))
-		
+	(println "Cost: " (cross-entropy-cost inputs
+																				expected-outputs
+																				(last layer-results)))
+	(loop [new-layers []
+				 layer-results-remaining (reverse (feed-forward inputs network))
+				 weighted-inputs-remaining (reverse (mapv #(mapv logit %) layer-results))
+				 layers-remaining (reverse (:weights network))
+				 layer-errors (output-errors (last layer-results)
+																		 expected-outputs
+																		 (last weighted-inputs))]
+		(if (empty? layers-remaining)
+			(assoc network :weights (reverse new-layers))
+			(recur (conj new-layers (adjust-layer-weights (first layers-remaining)
+																										(layer-weight-adjustments layer-errors
+																																							(first weighted-inputs-remaining)
+																																							(first layer-results-remaining))))
+						 (rest layer-results-remaining)
+						 (rest weighted-inputs-remaining)
+						 (rest layers-remaining)
+						 (next-layer-errors (first layers-remaining)
+																(layer-errors)))))
+
+    
 
 ;; (->> (map #(mean-squared-error %1 %2)
 ;; 																(feed-forward inputs network)
