@@ -162,7 +162,7 @@
 ; TRAINING FUNCTIONS
 ;
 
-(def ln10 (ln 10))
+(def ln10 (Math/log 10))
 
 (defn mean-squared-error
   "Formula for calculating the error of the output of a
@@ -174,12 +174,12 @@
   "Cost function based on cross-entropy logarithmic regression:
        Cost = y * log(a^L) + (1 - y) * log(1 - a^L)"
   [inputs expected-outs actual-outs]
-  (->> (map #((+ (* %1
-                    (log %2))
-                 (* (- 1 %1)
-                    (log (- 1 %2))))) expected-outs actual-outs)
-       (reduce +)
-       (* (/ 1 (- (count inputs))))))
+  (let [costs (map #((+ (* %1
+													 (Math/log %2))
+												(* (- 1 %1)
+													 (Math/log (- 1 %2))))) expected-outs actual-outs)
+				cost-sum (reduce + costs)]
+		(* (/ 1 (- (count inputs))) cost-sum)))
 
 (defn output-errors
   "Calculate errors of output neurons:
@@ -199,19 +199,24 @@
 ;; 	[actual-vec expected-vec]
 ;; 	(reduce + (map mean-squared-error actual-vec expected-vec)))
 
-(defn neuron-error
-  "Takes the previous errors and dot products them with the
-   weights to the given hidden neuron, calculating its error."
-  [prev-errors weights-from-neuron]
-  (dot prev-errors weights-from-neuron))
+;; (defn neuron-error
+;;   "Takes the previous errors and dot products them with the
+;;    weights to the given hidden neuron, calculating its error."
+;;   [prev-errors weights-from-neuron]
+;;   (dot prev-errors weights-from-neuron))
 
-(defn layer-errors
-  "Calculate the errors for the neurons in a layer by
-   taking the dot product of the following layer's errors
-   and the weights of the current layer."
-  [prev-errors layer]
-  (vec (for [weights-from-neuron (rows layer)]
-         (neuron-error prev-errors weights-from-neuron))))
+;; (defn layer-errors
+;;   "Calculate the errors for the neurons in a layer by
+;;    taking the dot product of the following layer's errors
+;;    and the weights of the current layer."
+;;   [prev-errors layer]
+;;   (vec (for [weights-from-neuron (rows layer)]
+;;          (neuron-error prev-errors weights-from-neuron))))
+
+(defn next-layer-errors
+	[current-layer current-errors]
+	(mapv (fn [weights-from-neuron] (reduce + (map * weights-from-neuron current-errors)))
+				(rows current-layer)))
 
 ;; (defn adjust-weights-to-neuron
 ;;   "Add the errors to the current weights to a neuron to
@@ -229,7 +234,7 @@
 (defn layer-weight-adjustments
 	[layer-errors weighted-inputs layer-outputs]
 	(map #(neuron-weight-adjustment %1 %2 %3)
-			 errors
+			 layer-errors
 			 weighted-inputs
 			 layer-outputs))
 
@@ -257,56 +262,52 @@
    errors, then propagate those errors back and return an
    adjusted network."
   [inputs expected-outputs network]
-	(println "Cost: " (cross-entropy-cost inputs
-																				expected-outputs
-																				(last layer-results)))
-	(loop [new-layers []
-				 layer-results-remaining (reverse (feed-forward inputs network))
-				 weighted-inputs-remaining (reverse (mapv #(mapv logit %) layer-results))
-				 layers-remaining (reverse (:weights network))
-				 layer-errors (output-errors (last layer-results)
-																		 expected-outputs
-																		 (last weighted-inputs))]
-		(if (empty? layers-remaining)
-			(assoc network :weights (reverse new-layers))
-			(recur (conj new-layers (adjust-layer-weights (first layers-remaining)
-																										(layer-weight-adjustments layer-errors
-																																							(first weighted-inputs-remaining)
-																																							(first layer-results-remaining))))
-						 (rest layer-results-remaining)
-						 (rest weighted-inputs-remaining)
-						 (rest layers-remaining)
-						 (next-layer-errors (first layers-remaining)
-																(layer-errors)))))
+	(let [layer-results     (feed-forward inputs network)
+				weighted-inputs   (mapv #(mapv logit %) layer-results)
+				outputs           (last layer-results)
+				out-errors        (output-errors outputs
+																				 expected-outputs
+																				 (last weighted-inputs))]
+		(println "Cost: " (cross-entropy-cost inputs
+																					expected-outputs
+																					outputs))
+		(loop [new-layers                  []
+					 layer-results-remaining     (reverse layer-results) 
+					 weighted-inputs-remaining   (reverse weighted-inputs)
+					 layers-remaining            (reverse (:weights network))
+					 layer-errors                out-errors]
+			(if (empty? layers-remaining)
+				(assoc network :weights (reverse new-layers))
+				(recur (conj new-layers (adjust-layer-weights (first layers-remaining)
+																											(layer-weight-adjustments layer-errors
+																																								(first weighted-inputs-remaining)
+																																								(first layer-results-remaining))))
+							 (rest layer-results-remaining)
+							 (rest weighted-inputs-remaining)
+							 (rest layers-remaining)
+							 (next-layer-errors (first layers-remaining)
+																	(layer-errors)))))))
 
-    
+(defn epoch
+  "Back propagate each piece of data (inputs and their
+   expected outputs) in a sequence of test data, returning
+   the adjusted network."
+  [training-data network]
+  (loop [data training-data
+         net network]
+    (if (empty? data)
+      net
+      (recur (rest data)
+             (back-propagate (:in (first data)) (:out (first data)) net)))))
 
-;; (->> (map #(mean-squared-error %1 %2)
-;; 																(feed-forward inputs network)
-;; 																expected-output)
-;; 													 (vec)
-;; 													 (list))
-
-;; (defn epoch
-;;   "Back propagate each piece of data (inputs and their
-;;    expected outputs) in a sequence of test data, returning
-;;    the adjusted network."
-;;   [training-data network]
-;;   (loop [data training-data
-;;          net network]
-;;     (if (empty? data)
-;;       net
-;;       (recur (rest data)
-;;              (back-propagate (:in (first data)) (:out (first data)) net)))))
-
-;; (defn train-network
-;;   "Train a network the given numebr of epochs."
-;;   [network training-data num-epochs]
-;;   (loop [epochs 1
-;; 				 net network]
-;; 		(if (= epochs num-epochs)
-;; 			net
-;; 			(recur (inc epochs) (epoch training-data net)))))
+(defn train-network
+  "Train a network the given numebr of epochs."
+  [network training-data num-epochs]
+  (loop [epochs 1
+				 net network]
+		(if (= epochs num-epochs)
+			net
+			(recur (inc epochs) (epoch training-data net)))))
 
 ;
 ; TEST SCENARIO
@@ -332,10 +333,9 @@
    {:in  [1.0 1.0]
     :out [0.0]}])
 
-;; (def and-gate-network
-;;   (-> (neural-net 0.0 1.0 2 2 2 1 0.0 1.0)
-;;       (randomize-net)
-;;       (train-network and-gate-training-data 0.05)))
+(def nand-gate-network
+  (-> (neural-net 0.0 1.0 2 2 2 1 0.0 1.0)
+      (randomize-net)))
 
 (defn -main
   "I don't do a whole lot ... yet."
